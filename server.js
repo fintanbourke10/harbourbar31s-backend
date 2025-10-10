@@ -1,8 +1,8 @@
 const express = require('express');
 const app = express();
-const port = 3000; // You may need to adjust this based on your hosting
+const port = process.env.PORT || 3000;
 
-app.use(express.static('public')); // Serve static files from a public folder
+app.use(express.static('public'));
 
 app.get('/api/time', (req, res) => {
     const now = new Date();
