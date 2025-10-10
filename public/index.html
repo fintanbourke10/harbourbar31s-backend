@@ -1,0 +1,1099 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>31's Harbour Rule Book</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Cinzel:wght@600&display=swap');
+
+        body {
+            font-family: 'Merriweather', serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a3c34 0%, #4b2e2e 100%);
+            background-size: cover;
+            color: #2b2b2b;
+            line-height: 1.6;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 1em;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0;
+            background: #fdf6e3;
+            border: none;
+            border-radius: 0;
+            position: relative;
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center the header-content horizontally */
+            padding: 10px;
+            background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            min-height: 60px;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Space between dropdown and buttons */
+            width: 100%;
+            max-width: 1200px; /* Limit width for better centering on large screens */
+            position: relative; /* For absolute positioning of buttons */
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .dropdown-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            touch-action: manipulation;
+        }
+        .dropdown-button:active {
+            transform: scale(0.95);
+        }
+        .dropdown-button:hover {
+            transform: scale(1.05);
+        }
+        .dropdown-button:hover .card {
+            transform: translateX(0) rotate(0deg);
+        }
+        .card {
+            position: absolute;
+            width: 40px;
+            height: 56px;
+            background: #fff;
+            border: 2px solid #2e1a1a;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            font-family: 'Cinzel', serif;
+            color: #2e1a1a;
+            transition: transform 0.3s ease;
+        }
+        .card:nth-child(1) {
+            transform: translateX(-10px) rotate(-8deg);
+            z-index: 3;
+        }
+        .card:nth-child(2) {
+            transform: translateX(0) rotate(0deg);
+            z-index: 2;
+        }
+        .card:nth-child(3) {
+            transform: translateX(10px) rotate(8deg);
+            z-index: 1;
+        }
+        .card .rank {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+        .card .suit-center {
+            font-size: 1.3em;
+        }
+        .card.spades .suit-center {
+            content: '♠';
+            color: #2e1a1a;
+        }
+        .card.hearts .suit-center {
+            content: '♥';
+            color: #e63946;
+        }
+        .card.diamonds .suit-center {
+            content: '♦';
+            color: #e63946;
+        }
+        .dropdown-content {
+            display: none;
+            position: fixed;
+            background: rgba(60,47,47,0.95);
+            width: 100%;
+            top: 60px;
+            left: 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border-radius: 0;
+            border: none;
+            z-index: 2000;
+            padding: 5px 0;
+            transition: opacity 0.3s ease;
+        }
+        .dropdown.active .dropdown-content {
+            display: block;
+            opacity: 1;
+        }
+        .dropdown-content a {
+            font-family: 'Merriweather', serif;
+            color: #2e7d32;
+            padding: 12px;
+            text-decoration: none;
+            display: block;
+            font-size: 1em;
+            background: #fdf6e3;
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            margin: 5px 10px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            touch-action: manipulation;
+            letter-spacing: 0.5px;
+            -webkit-text-stroke: 1px #2e7d32;
+            text-stroke: 1px #2e7d32;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+        .dropdown-content a:active {
+            transform: scale(0.95);
+        }
+        .dropdown-content a:hover {
+            background: rgba(46, 125, 50, 0.3);
+            transform: translateX(4px);
+        }
+        .header-row h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7), 0 0 6px rgba(255,215,0,0.9);
+            -webkit-text-stroke: 1px #d4af37;
+            text-stroke: 1px #d4af37;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .login-btn, .change-password-btn {
+            padding: 10px 20px;
+            background: #2e7d32;
+            color: #fff;
+            border: 2px solid #d4af37;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background 0.3s ease;
+            min-width: 100px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-btn:hover, .change-password-btn:hover {
+            background: #1b5e20;
+        }
+        .login-btn svg {
+            fill: #d4af37;
+            width: 24px;
+            height: 24px;
+        }
+        .login-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+        }
+        .change-password-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 120px;
+            display: none;
+        }
+        .content {
+            padding: 70px 10px 120px;
+            background: #fdf6e3;
+            position: relative;
+            overflow-y: auto;
+        }
+        .content::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.2), transparent);
+        }
+        .content h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2e1a1a;
+            border-bottom: 2px double #d4af37;
+            padding-bottom: 6px;
+            margin: 0 0 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .content section {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .content section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .content h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2e1a1a;
+            margin: 15px 0 8px;
+            border-bottom: 1px solid #d4af37;
+            padding-bottom: 4px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .content h2:hover {
+            color: #d4af37;
+        }
+        .content h2 .toggle-icon {
+            margin-left: 8px;
+            font-size: 2.5em;
+            padding: 10px;
+            background-color: #d4af37;
+            color: #2e1a1a;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            transition: transform 0.2s ease, background-color 0.3s ease;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .content h2 .toggle-icon:active {
+            transform: scale(0.9);
+            background-color: #b8860b;
+        }
+        .content .faq-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .content .faq-content.active {
+            max-height: 1000px;
+        }
+        .content p {
+            margin: 6px 0;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+        .two-column {
+            column-count: 1;
+            column-gap: 10px;
+            margin: 8px 0;
+        }
+        .step {
+            margin: 6px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 3px solid #d4af37;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            break-inside: avoid-column;
+            transition: transform 0.3s ease;
+            min-height: 48px;
+        }
+        .step:active {
+            transform: scale(0.95);
+        }
+        .step:hover {
+            transform: scale(1.02);
+        }
+        .step h3 {
+            margin: 0 0 6px;
+            color: #2e1a1a;
+            font-family: 'Cinzel', serif;
+            font-size: 1em;
+            font-weight: 600;
+        }
+        .note {
+            background: rgba(255, 245, 200, 0.9);
+            padding: 8px;
+            border-left: 3px solid #ff9800;
+            border-radius: 4px;
+            margin: 6px 0;
+            font-style: italic;
+            break-inside: avoid-column;
+            font-weight: 700;
+            min-height: 48px;
+        }
+        hr.section-divider {
+            border: none;
+            border-top: 2px solid #d4af37;
+            margin: 8px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(180deg, #3c2f2f 0%, #2e1a1a 100%);
+            border-top: 2px double #d4af37;
+            font-size: 0.9em;
+            color: #fdf6e3;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            min-height: 50px;
+        }
+        .login-page, .change-password-page {
+            display: none;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            max-width: 90%;
+            margin: 20px auto;
+            position: fixed;
+            top: 60px;
+            left: 5%;
+            right: 5%;
+            z-index: 2000;
+            font-size: 1em;
+        }
+        .login-page.active, .change-password-page.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 1em;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            font-size: 1em;
+            min-height: 40px;
+        }
+        button {
+            padding: 10px;
+            background: #2e7d32;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 1em;
+            min-width: 100px;
+            min-height: 48px;
+            margin: 5px 0;
+        }
+        button:hover {
+            background: #1b5e20;
+        }
+        .exit-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 30px;
+            height: 30px;
+            line-height: 20px;
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+        .exit-btn:hover {
+            background: #333;
+        }
+        .comment-section {
+            display: none;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            max-width: 90%;
+            margin: 20px auto;
+            font-size: 1em;
+        }
+        .comment-section.active {
+            display: block;
+        }
+        .comment-list {
+            margin-top: 15px;
+        }
+        .comment {
+            padding: 8px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        .comment .author {
+            font-weight: bold;
+            color: #2e1a1a;
+        }
+        .timestamp {
+            text-align: center;
+            padding: 6px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-style: italic;
+            font-size: 0.8em;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                font-size: 1.1em;
+            }
+            .header-row {
+                min-height: 70px;
+            }
+            .dropdown-button {
+                width: 90px;
+                height: 70px;
+            }
+            .card {
+                width: 50px;
+                height: 70px;
+                font-size: 1.3em;
+            }
+            .card .rank {
+                font-size: 0.8em;
+            }
+            .card .suit-center {
+                font-size: 1.6em;
+            }
+            .dropdown-content {
+                top: 70px;
+            }
+            .header-row h1 {
+                font-size: 1.8em;
+                max-width: 70%;
+                letter-spacing: 2px;
+            }
+            .login-btn, .change-password-btn {
+                min-width: 120px;
+            }
+            .content {
+                padding: 80px 15px 130px;
+            }
+            .content h1 {
+                font-size: 1.5em;
+            }
+            .content h2 {
+                font-size: 1.3em;
+            }
+            .content p {
+                font-size: 1.1em;
+            }
+            .step, .note {
+                min-height: 60px;
+            }
+            .step h3 {
+                font-size: 1.1em;
+            }
+            .footer {
+                min-height: 60px;
+                font-size: 1em;
+            }
+            .login-page, .change-password-page {
+                max-width: 400px;
+                left: auto;
+                right: 10px;
+                margin: 50px auto;
+            }
+            .comment-section {
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <div class="header-content">
+                <div class="dropdown">
+                    <div class="dropdown-button">
+                        <div class="card spades">
+                            <span class="rank">A</span>
+                            <span class="suit-center">♠</span>
+                        </div>
+                        <div class="card hearts">
+                            <span class="rank">A</span>
+                            <span class="suit-center">♥</span>
+                        </div>
+                        <div class="card diamonds">
+                            <span class="rank">A</span>
+                            <span class="suit-center">♦</span>
+                        </div>
+                    </div>
+                    <div class="dropdown-content">
+                        <a href="#intro">Introduction</a>
+                        <a href="#backstory">Historical Background</a>
+                        <a href="#get-going">Getting Started</a>
+                        <a href="#rules">Official Rules</a>
+                        <a href="#fixin-stuff">Troubleshooting</a>
+                        <a href="#big-wigs">Leadership Council</a>
+                        <a href="#board-members-posts">Board Members' Contributions</a>
+                        <a href="#faq">Frequently Asked Questions</a>
+                    </div>
+                </div>
+                <h1>31's Harbour Rule Book</h1>
+                <div>
+                    <button class="login-btn" id="loginLink">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5zm0 12c-1.38 0-2.5-1.12-2.5-2.5S10.62 9 12 9s2.5 1.12 2.5 2.5S13.38 14 12 14zm5-7V7c0-1.65-1.35-3-3-3s-3 1.35-3 3v3h6V7z"/>
+                        </svg>
+                    </button>
+                    <button class="change-password-btn" id="changePasswordLink">Change Password</button>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Version 1.0</h1>
+            <section id="intro" class="visible">
+                <h2>Introduction</h2>
+                <p>Craic, welcome to <strong>31's</strong>—a rip-roarin' card game with a 32-card deck where you’ve gotta think fast or get knackered, you lazy lot from the southside of Dublin, Brent! Aim to rack up a hand close to 31 points, and if you snag three of a kind, you’ve got a cheeky "30 and a half" to brag about—good luck, Fintan, you self-proclaimed napping king! Whether you’re a seasoned pro or a clueless newbie like Brent stumbling into this chaos with his southside swagger, this guide’s here to show you how to rule the table—if you can stop drooling long enough, Aaron, you pint-stealing peacock! It’s a wild ride with quick moves, a bit of rivalry, and a lot of piss-taking—perfect for a laugh with mates or a proper sesh with some stakes, you stoned slugs!</p>
+            </section>
+            <hr class="section-divider">
+            <section id="backstory">
+                <h2>Historical Background</h2>
+                <p>31's—also chucked around as "Thirty-One" or "Scat" depending on where you’re from—kicks off from some ancient European card shenanigans, especially from Germany and France with games like "Skat" and "Piquet" using a 32-card deck. It’s a pub classic, thrown into family dos, boozy nights, or just a casual chinwag with cards—perfect for Macken to forget the rules mid-game, you stoned sloth! The fun’s in how easy it is—just a deck and a few pals—and the "pass" rule adds a bit of cheeky banter, which Peter Baby ruins with his cheating ways from his sacred chair. Whether you’re tossing in 50 cents for lives or just mucking about, Brent, with your southside chaos, it’s all about the laughs, bluffs, and epic wins—mostly because half of you, like Jody, can’t count past 10!</p>
+            </section>
+            <hr class="section-divider">
+            <section id="get-going">
+                <h2>Getting Started</h2>
+                <div class="two-column">
+                    <div class="step">
+                        <h3>Step 1: Gather Participants</h3>
+                        <p>31's works best with 3-7 players. Make sure everyone’s clued up or has this guide handy for a giggle—good luck with that, you argumentative lot, Richard, you stoned dictator!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Step 2: Prepare the Deck</h3>
+                        <p>Grab a standard 32-card deck (7 through Ace of Spades, Hearts, Diamonds, Clubs) and give it a proper shuffle—try not to drop it, Brent, you southside rule-shredding disaster!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Step 3: Establish Lives</h3>
+                        <p>Everyone starts with 3 lives—use coins or whatever. Each life’s 50 cents, and the final showdown’s a euro—don’t let Aaron nick it, you drunken oaf from Power Hour!</p>
+                        <div class="note">Note: Sort out the cash and stakes with the crew first—watch out for Peter Baby’s sneaky cheating fingers, you spoiled brat!</div>
+                    </div>
+                    <div class="step">
+                        <h3>Step 4: Distribute Cards</h3>
+                        <p>Deal one card face-up to each player. The first to get an Ace—usually that smug git Richard, while poor Brent’s bound to fuck it up with his southside clumsiness—gets all 32 cards to deal for the main game. No Chinese deals—start to the left, move clockwise until you get back to yourself, then place one in the middle draw pile, and continue clockwise until all players, including the draw pile, have 3 cards. Good luck, Brent, try not to screw it up again, you hopeless southside wreck!</p>
+                    </div>
+                </div>
+            </section>
+            <hr class="section-divider">
+            <section id="rules">
+                <h2>Official Rules</h2>
+                <p>The goal? Pile up a hand as close to 31 points as you can, you numpties from the southside, Brent. Here’s the score:</p>
+                <ul>
+                    <li>Ace: 11 points</li>
+                    <li>King, Queen, Jack: 10 points each</li>
+                    <li>Number cards (7-10): What’s on the tin—count it, Jody, you rust-like statue!</li>
+                    <li>Three of a kind (e.g., three 7s): 30 and a half, you legend—nice one, Paddy, you lip-obsessed singing lunatic!</li>
+                </ul>
+                <p>Here’s how it goes down, you useless lot:</p>
+                <div class="two-column">
+                    <div class="step">
+                        <h3>Turn Actions</h3>
+                        <p>Keep only 3 cards in your hand at all times—yes, Peter Baby, that means you, you cheating toad from your sacred chair! Each go, plonk one card into the draw pile of 3, then grab one from that same pile—no touching the extra hand. The rest of the deck moves to the left player to deal next, so don’t botch it, Brent, you southside chaos gremlin!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Passing</h3>
+                        <p>Think you’ve got your best hand? Yell "pass" like you mean it, and the round’s done—show your cards, you cheeky sod, and don’t mumble it like a coward, Peter Baby, you stubborn child!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Scoring and Lives</h3>
+                        <p>Lowest hand loses a life (50 cents)—tough luck, Macken, you stoned sloth in short shorts! With more than 4 players, the first to lose all 3 gets "the donkey" (an extra life), and with 5+, the second gets their €1.50 back. With 3 players, each loser in a row gets "the donkey." Lose that too? Cough up a euro for the final scrap. If it’s just two left and they tie (a "Stitch"), everyone’s back in with full lives, and the pot’s safe for next time—stop whining, Richard, you argumentative weed haze!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Joining a Game</h3>
+                        <p>Newbies can only jump in during a "Stitch" (when the last two tie and reset the lot) or when one life’s left in the pot. Throw in €1.50 for the current pot and another €1.50 for the next game to join the fun—don’t expect Johnny to take it easy, you loudmouth crafty git!</p>
+                    </div>
+                    <div class="step">
+                        <h3>No Cheating or Colluding</h3>
+                        <p>No sneaky peeks at cards or teaming up, you muppets—looking at you, Peter Baby and Richard, you secret besties with your stoned arguments! Get caught, and it’s a life lost or you’re out, decided by the board, Fintan, you arrogant napping king!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Game Ends with 31</h3>
+                        <p>Hit exactly 31? Game over, and the lowest hand loses 50 cents—don’t expect Aaron to notice, he’s too busy stealing the nearest pint, you drunken peacock from Power Hour!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Winning</h3>
+                        <p>Last one standing nabs the pot—if you’re playing for cash, that is, you stingy lot—good luck outlasting Jody’s rust-like skills, you standing oaf!</p>
+                    </div>
+                </div>
+                <div class="note">Note: Three of a kind (30 and a half) is your ace up the sleeve—smash it, you hopeless wrecks, and stop singing off-key, Paddy, you brazen karaoke king!</div>
+            </section>
+            <hr class="section-divider">
+            <section id="fixin-stuff">
+                <h2>Troubleshooting</h2>
+                <div class="two-column">
+                    <div class="step">
+                        <h3>Issue: Incorrect Points</h3>
+                        <p>Make sure everyone’s on the same page (Ace = 11, three of a kind = 30.5). Double-check the tally at the end, you numpty—looking at you, Brent, you southside rule-shredding disaster!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Issue: Dispute Over Passing</h3>
+                        <p>Did they shout "pass" loud enough with their best hand? If not, they lose a life, no excuses—Peter Baby, stop your whiny cheating ways, you spoiled brat from your sacred chair!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Issue: "The Donkey" Confusion</h3>
+                        <p>With 4+ players, first to lose all 3 gets "the donkey" (extra life). 5+? Second gets €1.50 back. 3 players? Each loser in a row gets "the donkey." Keep tabs, or it’s chaos—sort it out, Macken, you lazy slug in short shorts!</p>
+                    </div>
+                    <div class="step">
+                        <h3>Issue: No Cards Remaining</h3>
+                        <p>Draw pile run dry? Shuffle the discards (keep the top card out) for a new 3-card pile, sorted—don’t screw it up again, Brent, you hopeless southside wreck!</p>
+                    </div>
+                </div>
+            </section>
+            <hr class="section-divider">
+            <section id="big-wigs">
+                <h2>Leadership Council</h2>
+                <p>These are the top dogs of the 31's board, keeping the game’s spirit alive—well, Fintan thinks he does while napping like a king! Only they can muck about with the rules—proper job, you peasants, bow to Richard’s stoned arguments, you argumentative weed haze!</p>
+                <div class="two-column">
+                    <div class="step">
+                        <h3>Fintan</h3>
+                        <p>Board Member</p>
+                    </div>
+                    <div class="step">
+                        <h3>Macken</h3>
+                        <p>Board Member</p>
+                    </div>
+                    <div class="step">
+                        <h3>Richard</h3>
+                        <p>Board Member</p>
+                    </div>
+                    <div class="step">
+                        <h3>Johnny</h3>
+                        <p>Board Member</p>
+                    </div>
+                    <div class="step">
+                        <h3>Peter Baby</h3>
+                        <p>Board Member</p>
+                    </div>
+                    <div class="step">
+                        <h3>Jody</h3>
+                        <p>Board Member</p>
+                    </div>
+                    <div class="step">
+                        <h3>Forever Probation Period</h3>
+                        <p>Brent</p>
+                    </div>
+                    <div class="step">
+                        <h3>Probation Period</h3>
+                        <p>Aaron</p>
+                    </div>
+                    <div class="step">
+                        <h3>Probation Period</h3>
+                        <p>Paddy</p>
+                    </div>
+                </div>
+            </section>
+            <hr class="section-divider">
+            <section id="board-members-posts">
+                <h2>Board Members' Contributions</h2>
+                <div class="timestamp" id="currentTime">Loading time...</div>
+                <div class="comment-section" id="commentSection" style="display: none;">
+                    <h3>Add a Comment</h3>
+                    <div class="form-group">
+                        <label for="commentInput">Your Comment:</label>
+                        <input type="text" id="commentInput" placeholder="Enter your comment...">
+                    </div>
+                    <button onclick="addComment()">Post Comment</button>
+                    <div class="comment-list" id="commentList"></div>
+                </div>
+            </section>
+            <hr class="section-divider">
+            <section id="faq">
+                <h2 onclick="toggleFAQ()">
+                    Frequently Asked Questions
+                    <span class="toggle-icon" id="faqToggleIcon">+</span>
+                </h2>
+                <div class="faq-content" id="faqContent">
+                    <div class="two-column">
+                        <div class="step">
+                            <h3>What Happens with Equal Scores?</h3>
+                            <p>Tie for lowest? Both lose a life unless it’s just two left—then it’s a "Stitch," and everyone’s back with the pot safe. Stop crying about it, you whingers—especially you, Peter Baby, you cheating toad!</p>
+                        </div>
+                        <div class="step">
+                            <h3>Is Passing Allowed on First Turn?</h3>
+                            <p>Yes, if you’ve got your best hand, shout "pass" and have a laugh—don’t mumble it like a coward, you sneaky southside git, Brent!</p>
+                        </div>
+                        <div class="step">
+                            <h3>What is "the Donkey"?</h3>
+                            <p>4+ players, first to lose all 3 gets "the donkey" (extra life). 3 players, each loser in a row gets it. Lose that? Pay a euro for the final bash—enjoy your shame, Brent, you southside rule-shredder!</p>
+                        </div>
+                        <div class="step">
+                            <h3>What Constitutes the "Final Game"?</h3>
+                            <p>Lose all lives (including "the donkey")? Pay a euro to join the last stand—last one wins the pot. 5+ players? Second out gets €1.50 back. Try not to screw it up, you lot—especially you, Jody, with your rust-like skills, you standing oaf!</p>
+                        </div>
+                        <div class="step">
+                            <h3>When Can New Players Join?</h3>
+                            <p>Only during a "Stitch" or when one life’s left. Chuck in €1.50 for the pot and €1.50 for the next game—don’t expect Johnny to take it easy, you loudmouth crafty newbies!</p>
+                        </div>
+                        <div class="step">
+                            <h3>What Happens if Someone Reaches 31?</h3>
+                            <p>Hit 31? Game’s done, lowest hand loses 50 cents—don’t expect Aaron to notice, he’s too busy stealing pints, you drunken peacock from Power Hour!</p>
+                        </div>
+                        <div class="step">
+                            <h3>What is the Extra Hand Used For?</h3>
+                            <p>One extra hand of 3 cards in the middle—swap one from your hand with it if you fancy a punt. Don’t botch it, Brent, you hopeless southside wreck!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="footer">
+            <p>© 2025 31's Card Game. All rights reserved. Proudly crafted by Grok, with a wee bit o' craic and only a few pints spilled—cheers to the 31's Harbour Committee for keeping it legit!</p>
+        </div>
+        <div class="login-page" id="loginPage">
+            <h2>Login</h2>
+            <button class="exit-btn" onclick="closeLogin()">X</button>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <button onclick="login()">Login</button>
+            <button onclick="showRegistration()">Register</button>
+        </div>
+        <div class="change-password-page" id="changePasswordPage">
+            <h2>Change Password</h2>
+            <button class="exit-btn" onclick="closePasswordChange()">X</button>
+            <div class="form-group">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password:</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+            <button onclick="changePassword()">Change Password</button>
+        </div>
+    </div>
+    <script>
+        // Base API URL (update to your deployed backend URL, e.g., https://yourdomain.com/api)
+        const API_URL = 'http://harbourbar31s.eu'; // Update this for your live server
+
+        let token = localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username');
+
+        if (token) {
+            document.getElementById('commentSection').style.display = 'block';
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('changePasswordLink').style.display = 'block';
+        }
+
+        // Update time from server
+        async function updateTime() {
+            try {
+                const res = await fetch(`${API_URL}/api/time`);
+                const data = await res.json();
+                document.getElementById('currentTime').textContent = `Current Time: ${data.time} IST`;
+            } catch (err) {
+                document.getElementById('currentTime').textContent = 'Error loading time';
+            }
+        }
+        updateTime(); // Initial load
+        setInterval(updateTime, 60000); // Update every minute
+
+        // Show login page
+        document.getElementById('loginLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('loginPage').classList.add('active');
+        });
+
+        // Close login page
+        function closeLogin() {
+            document.getElementById('loginPage').classList.remove('active');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Show change password page
+        document.getElementById('changePasswordLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+            document.getElementById('changePasswordPage').classList.add('active');
+        });
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const res = await fetch(`${API_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.token) {
+                token = data.token;
+                currentUser = username;
+                localStorage.setItem('token', token);
+                localStorage.setItem('username', currentUser);
+                document.getElementById('loginPage').classList.remove('active');
+                document.getElementById('commentSection').style.display = 'block';
+                document.getElementById('changePasswordLink').style.display = 'block';
+                loadComments();
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+
+        async function showRegistration() {
+            alert('Registration not implemented in demo. Contact admin to register.');
+        }
+
+        async function addComment() {
+            if (!token) return alert('Login required');
+            const text = document.getElementById('commentInput').value;
+            const res = await fetch(`${API_URL}/api/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ text })
+            });
+            if (res.ok) {
+                document.getElementById('commentInput').value = '';
+                loadComments();
+            } else {
+                const error = await res.json();
+                alert(error.error || 'Error posting comment');
+            }
+        }
+
+        async function loadComments() {
+            try {
+                const res = await fetch(`${API_URL}/api/comments`);
+                const comments = await res.json();
+                const list = document.getElementById('commentList');
+                list.innerHTML = comments.map(c => `<div class="comment"><strong>${c.author}</strong>: ${c.text} <small>${new Date(c.timestamp).toLocaleString()}</small></div>`).join('');
+            } catch (err) {
+                document.getElementById('commentList').innerHTML = '<p>Error loading comments</p>';
+            }
+        }
+
+        async function changePassword() {
+            if (!token) return alert('Please login first');
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+
+            if (!newPassword || !currentPassword) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const res = await fetch(`${API_URL}/api/auth/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            if (res.ok) {
+                alert('Password changed successfully');
+                document.getElementById('changePasswordPage').classList.remove('active');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } else {
+                const error = await res.json();
+                alert(error.error || 'Error changing password');
+            }
+        }
+
+        function closePasswordChange() {
+            document.getElementById('changePasswordPage').classList.remove('active');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        // Load initial content
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.content section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            sections.forEach(section => observer.observe(section));
+
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownContent = document.querySelector('.dropdown-content');
+            const content = document.querySelector('.content');
+
+            dropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+
+            dropdownContent.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A') {
+                    dropdown.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('.dropdown-content a').forEach(anchor => {
+                anchor.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = anchor.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        const headerOffset = 70;
+                        const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                        const offsetPosition = elementPosition - headerOffset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            let startY = 0;
+            let isPulling = false;
+
+            content.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                isPulling = content.scrollTop === 0;
+            });
+
+            content.addEventListener('touchmove', (e) => {
+                if (isPulling) {
+                    const currentY = e.touches[0].clientY;
+                    if (currentY - startY > 100) {
+                        window.location.reload();
+                    }
+                }
+            });
+
+            loadComments();
+        });
+
+        // Toggle FAQ section, update icon, and scroll to FAQ with delay
+        function toggleFAQ() {
+            const faqContent = document.getElementById('faqContent');
+            const toggleIcon = document.getElementById('faqToggleIcon');
+            const faqSection = document.getElementById('faq');
+            faqContent.classList.toggle('active');
+            if (faqContent.classList.contains('active')) {
+                toggleIcon.textContent = '-';
+            } else {
+                toggleIcon.textContent = '+';
+            }
+            // Add a small delay to ensure content is expanded before scrolling
+            setTimeout(() => {
+                const headerOffset = 100;
+                const elementPosition = faqSection.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
