@@ -626,7 +626,7 @@
             </div>
         </div>
         <div class="content">
-            <h1>Version 1.0</h1>
+            <h1>31's Harbour Rule Book</h1>
             <section id="intro" class="visible">
                 <h2>Introduction</h2>
                 <p>Craic, welcome to <strong>31's</strong>—a rip-roarin' card game with a 32-card deck where you’ve gotta think fast or get knackered, you lazy lot from the southside of Dublin, Brent! Aim to rack up a hand close to 31 points, and if you snag three of a kind, you’ve got a cheeky "30 and a half" to brag about—good luck, Fintan, you self-proclaimed napping king! Whether you’re a seasoned pro or a clueless newbie like Brent stumbling into this chaos with his southside swagger, this guide’s here to show you how to rule the table—if you can stop drooling long enough, Aaron, you pint-stealing peacock! It’s a wild ride with quick moves, a bit of rivalry, and a lot of piss-taking—perfect for a laugh with mates or a proper sesh with some stakes, you stoned slugs!</p>
@@ -857,147 +857,49 @@
         </div>
     </div>
     <script>
-        // Base API URL (update to your deployed backend URL, e.g., https://yourdomain.com/api)
-        const API_URL = 'http://harbourbar31s.eu'; // Update this for your live server
-
-        let token = localStorage.getItem('token');
-        let currentUser = localStorage.getItem('username');
-
-        if (token) {
-            document.getElementById('commentSection').style.display = 'block';
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('changePasswordLink').style.display = 'block';
-        }
-
-        // Update time from server
-        async function updateTime() {
+        // Client-side time update to avoid backend dependency
+        function updateTime() {
             try {
-                const res = await fetch(`${API_URL}/api/time`);
-                const data = await res.json();
-                document.getElementById('currentTime').textContent = `Current Time: ${data.time} IST`;
-            } catch (err) {
+                const now = new Date();
+                const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+                document.getElementById('currentTime').textContent = `Current Time: ${istTime} IST`;
+            } catch (error) {
                 document.getElementById('currentTime').textContent = 'Error loading time';
+                console.error('Time update error:', error);
             }
         }
         updateTime(); // Initial load
         setInterval(updateTime, 60000); // Update every minute
 
-        // Show login page
+        // Remove API_URL since we're using client-side time
+        // const API_URL = 'https://harbourbar31s-backend.onrender.com';
+
+        // Login and comment functionality (disabled without backend)
         document.getElementById('loginLink').addEventListener('click', (e) => {
             e.preventDefault();
             document.getElementById('loginPage').classList.add('active');
         });
 
-        // Close login page
         function closeLogin() {
             document.getElementById('loginPage').classList.remove('active');
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
         }
 
-        // Show change password page
-        document.getElementById('changePasswordLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!token) {
-                alert('Please login first');
-                return;
-            }
-            document.getElementById('changePasswordPage').classList.add('active');
-        });
-
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const res = await fetch(`${API_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            if (data.token) {
-                token = data.token;
-                currentUser = username;
-                localStorage.setItem('token', token);
-                localStorage.setItem('username', currentUser);
-                document.getElementById('loginPage').classList.remove('active');
-                document.getElementById('commentSection').style.display = 'block';
-                document.getElementById('changePasswordLink').style.display = 'block';
-                loadComments();
-            } else {
-                alert('Invalid credentials');
-            }
+        function login() {
+            alert('Login feature requires a backend server. Contact admin to set up.');
         }
 
-        async function showRegistration() {
-            alert('Registration not implemented in demo. Contact admin to register.');
+        function showRegistration() {
+            alert('Registration not implemented without a backend. Contact admin.');
         }
 
-        async function addComment() {
-            if (!token) return alert('Login required');
-            const text = document.getElementById('commentInput').value;
-            const res = await fetch(`${API_URL}/api/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ text })
-            });
-            if (res.ok) {
-                document.getElementById('commentInput').value = '';
-                loadComments();
-            } else {
-                const error = await res.json();
-                alert(error.error || 'Error posting comment');
-            }
+        function addComment() {
+            alert('Comment feature requires a backend server. Contact admin to set up.');
         }
 
-        async function loadComments() {
-            try {
-                const res = await fetch(`${API_URL}/api/comments`);
-                const comments = await res.json();
-                const list = document.getElementById('commentList');
-                list.innerHTML = comments.map(c => `<div class="comment"><strong>${c.author}</strong>: ${c.text} <small>${new Date(c.timestamp).toLocaleString()}</small></div>`).join('');
-            } catch (err) {
-                document.getElementById('commentList').innerHTML = '<p>Error loading comments</p>';
-            }
-        }
-
-        async function changePassword() {
-            if (!token) return alert('Please login first');
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (newPassword !== confirmPassword) {
-                alert('New passwords do not match');
-                return;
-            }
-
-            if (!newPassword || !currentPassword) {
-                alert('Please fill all fields');
-                return;
-            }
-
-            const res = await fetch(`${API_URL}/api/auth/change-password`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ currentPassword, newPassword })
-            });
-
-            if (res.ok) {
-                alert('Password changed successfully');
-                document.getElementById('changePasswordPage').classList.remove('active');
-                document.getElementById('currentPassword').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('confirmPassword').value = '';
-            } else {
-                const error = await res.json();
-                alert(error.error || 'Error changing password');
-            }
+        function changePassword() {
+            alert('Password change requires a backend server. Contact admin to set up.');
         }
 
         function closePasswordChange() {
@@ -1007,7 +909,7 @@
             document.getElementById('confirmPassword').value = '';
         }
 
-        // Load initial content
+        // DOM content loading and interactivity
         document.addEventListener('DOMContentLoaded', () => {
             const sections = document.querySelectorAll('.content section');
             const observer = new IntersectionObserver((entries) => {
@@ -1071,11 +973,8 @@
                     }
                 }
             });
-
-            loadComments();
         });
 
-        // Toggle FAQ section, update icon, and scroll to FAQ with delay
         function toggleFAQ() {
             const faqContent = document.getElementById('faqContent');
             const toggleIcon = document.getElementById('faqToggleIcon');
@@ -1086,7 +985,6 @@
             } else {
                 toggleIcon.textContent = '+';
             }
-            // Add a small delay to ensure content is expanded before scrolling
             setTimeout(() => {
                 const headerOffset = 100;
                 const elementPosition = faqSection.getBoundingClientRect().top + window.pageYOffset;
