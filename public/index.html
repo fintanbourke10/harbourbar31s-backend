@@ -189,7 +189,7 @@
             text-overflow: ellipsis;
             text-align: center;
         }
-        .login-btn, .change-password-btn {
+        .login-btn, .change-password-btn, .logout-btn {
             padding: 10px 20px;
             background: #2e7d32;
             color: #fff;
@@ -205,7 +205,7 @@
             justify-content: center;
             margin-right: 10px;
         }
-        .login-btn:hover, .change-password-btn:hover {
+        .login-btn:hover, .change-password-btn:hover, .logout-btn:hover {
             background: #1b5e20;
         }
         .login-btn svg {
@@ -217,6 +217,18 @@
         }
         .change-password-btn {
             display: none;
+        }
+        .logout-btn {
+            display: none;
+        }
+        .logged-in {
+            display: flex;
+            align-items: center;
+        }
+        .logged-in .username {
+            color: #fff;
+            margin-right: 10px;
+            font-size: 1.1em;
         }
         .content {
             padding: 70px 10px 120px;
@@ -490,7 +502,7 @@
                 max-width: 70%;
                 letter-spacing: 2px;
             }
-            .login-btn, .change-password-btn {
+            .login-btn, .change-password-btn, .logout-btn {
                 min-width: 120px;
             }
             .content {
@@ -547,13 +559,17 @@
                     </div>
                 </div>
                 <h1>31's Rule Book</h1>
-                <div>
+                <div id="loginArea">
                     <button class="login-btn" id="loginLink">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5zm0 12c-1.38 0-2.5-1.12-2.5-2.5S10.62 9 12 9s2.5 1.12 2.5 2.5S13.38 14 12 14zm5-7V7c0-1.65-1.35-3-3-3s-3 1.35-3 3v3h6V7z"/>
                         </svg>
                     </button>
                     <button class="change-password-btn" id="changePasswordLink">Change Password</button>
+                    <div class="logged-in" id="loggedInArea" style="display: none;">
+                        <span class="username" id="loggedInUser"></span>
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -807,27 +823,52 @@
             document.getElementById('loginPage').classList.add('active');
         });
 
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('loggedInUser').textContent = data.user;
+                    document.getElementById('loginArea').style.display = 'none';
+                    document.getElementById('loggedInArea').style.display = 'flex';
+                    closeLogin();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                alert('Error connecting to server. 💦');
+                console.error('Login error:', error);
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:3000/logout', { method: 'GET' });
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('loggedInArea').style.display = 'none';
+                    document.getElementById('loginArea').style.display = 'flex';
+                    alert(data.message);
+                }
+            } catch (error) {
+                alert('Error logging out. 💦');
+                console.error('Logout error:', error);
+            }
+        });
+
         function closeLogin() {
             document.getElementById('loginPage').classList.remove('active');
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
-        }
-
-        function login() {
-            const username = document.getElementById('username').value.toLowerCase();
-            const password = document.getElementById('password').value;
-            const boardMembers = ['fintan', 'macken', 'richard', 'johnny', 'peter baby', 'jody', 'brent', 'aaron', 'paddy'];
-
-            if (!boardMembers.includes(username)) {
-                alert(`Access denied, ${username}! Only board members can log in. 💦`);
-                return;
-            }
-            // Dummy password check (replace with real backend logic)
-            if (password === `${username}pass`) { // Placeholder password for each board member
-                alert('Login successful! (Backend required for full functionality)');
-            } else {
-                alert('Incorrect password. 💦');
-            }
         }
 
         function showRegistration() {
