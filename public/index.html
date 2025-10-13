@@ -78,7 +78,7 @@
         .header-row {
             display: flex;
             align-items: center;
-            justify-content: center; /* Center the header-content horizontally */
+            justify-content: center;
             padding: 10px;
             background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
@@ -92,10 +92,10 @@
         .header-content {
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Space between dropdown and buttons */
+            justify-content: space-between;
             width: 100%;
-            max-width: 1200px; /* Limit width for better centering on large screens */
-            position: relative; /* For absolute positioning of buttons */
+            max-width: 1200px;
+            position: relative;
         }
         .dropdown {
             position: relative;
@@ -111,6 +111,11 @@
             cursor: pointer;
             transition: transform 0.3s ease;
             touch-action: manipulation;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 1.5em;
+            color: #fff;
         }
         .dropdown-button:active {
             transform: scale(0.95);
@@ -118,76 +123,28 @@
         .dropdown-button:hover {
             transform: scale(1.05);
         }
-        .dropdown-button:hover .card {
-            transform: translateX(0) rotate(0deg);
-        }
-        .card {
-            position: absolute;
-            width: 40px;
-            height: 56px;
-            background: #fff;
-            border: 2px solid #2e1a1a;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1em;
-            font-family: 'Cinzel', serif;
-            color: #2e1a1a;
-            transition: transform 0.3s ease;
-        }
-        .card:nth-child(1) {
-            transform: translateX(-10px) rotate(-8deg);
-            z-index: 3;
-        }
-        .card:nth-child(2) {
-            transform: translateX(0) rotate(0deg);
-            z-index: 2;
-        }
-        .card:nth-child(3) {
-            transform: translateX(10px) rotate(8deg);
-            z-index: 1;
-        }
-        .card .rank {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            font-size: 0.7em;
-            font-weight: 600;
-        }
-        .card .suit-center {
-            font-size: 1.3em;
-        }
-        .card.spades .suit-center {
-            content: '♠';
-            color: #2e1a1a;
-        }
-        .card.hearts .suit-center {
-            content: '♥';
-            color: #e63946;
-        }
-        .card.diamonds .suit-center {
-            content: '♦';
-            color: #e63946;
+        .hamburger-icon {
+            font-size: 2em;
+            line-height: 1;
         }
         .dropdown-content {
             display: none;
             position: fixed;
             background: rgba(60,47,47,0.95);
-            width: 100%;
+            width: 250px;
             top: 60px;
-            left: 0;
+            left: -250px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             border-radius: 0;
             border: none;
             z-index: 2000;
             padding: 5px 0;
-            transition: opacity 0.3s ease;
+            transition: transform 0.3s ease;
+            transform: translateX(0);
         }
         .dropdown.active .dropdown-content {
             display: block;
-            opacity: 1;
+            transform: translateX(100%);
         }
         .dropdown-content a {
             font-family: 'Merriweather', serif;
@@ -525,19 +482,9 @@
                 min-height: 70px;
             }
             .dropdown-button {
-                width: 90px;
+                width: 70px;
                 height: 70px;
-            }
-            .card {
-                width: 50px;
-                height: 70px;
-                font-size: 1.3em;
-            }
-            .card .rank {
-                font-size: 0.8em;
-            }
-            .card .suit-center {
-                font-size: 1.6em;
+                font-size: 2em;
             }
             .dropdown-content {
                 top: 70px;
@@ -589,20 +536,9 @@
         <div class="header-row">
             <div class="header-content">
                 <div class="dropdown">
-                    <div class="dropdown-button">
-                        <div class="card spades">
-                            <span class="rank">A</span>
-                            <span class="suit-center">♠</span>
-                        </div>
-                        <div class="card hearts">
-                            <span class="rank">A</span>
-                            <span class="suit-center">♥</span>
-                        </div>
-                        <div class="card diamonds">
-                            <span class="rank">A</span>
-                            <span class="suit-center">♦</span>
-                        </div>
-                    </div>
+                    <button class="dropdown-button">
+                        <span class="hamburger-icon">☰</span>
+                    </button>
                     <div class="dropdown-content">
                         <a href="#intro">Introduction</a>
                         <a href="#backstory">Historical Background</a>
@@ -857,24 +793,19 @@
         </div>
     </div>
     <script>
-        // Client-side time update to avoid backend dependency
         function updateTime() {
             try {
                 const now = new Date();
-                const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-                document.getElementById('currentTime').textContent = `Current Time: ${istTime} IST`;
+                const dublinTime = now.toLocaleString('en-IE', { timeZone: 'Europe/Dublin' });
+                document.getElementById('currentTime').textContent = `Current Time: ${dublinTime} IST`;
             } catch (error) {
                 document.getElementById('currentTime').textContent = 'Error loading time';
                 console.error('Time update error:', error);
             }
         }
-        updateTime(); // Initial load
-        setInterval(updateTime, 60000); // Update every minute
+        updateTime();
+        setInterval(updateTime, 60000);
 
-        // Remove API_URL since we're using client-side time
-        // const API_URL = 'https://harbourbar31s-backend.onrender.com';
-
-        // Login and comment functionality (disabled without backend)
         document.getElementById('loginLink').addEventListener('click', (e) => {
             e.preventDefault();
             document.getElementById('loginPage').classList.add('active');
@@ -909,7 +840,6 @@
             document.getElementById('confirmPassword').value = '';
         }
 
-        // DOM content loading and interactivity
         document.addEventListener('DOMContentLoaded', () => {
             const sections = document.querySelectorAll('.content section');
             const observer = new IntersectionObserver((entries) => {
@@ -939,7 +869,16 @@
 
             dropdownContent.addEventListener('click', (e) => {
                 if (e.target.tagName === 'A') {
-                    dropdown.classList.remove('active');
+                    e.preventDefault();
+                    const targetId = e.target.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        const headerOffset = 70;
+                        const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                        const offsetPosition = elementPosition - headerOffset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                        dropdown.classList.remove('active');
+                    }
                 }
             });
 
@@ -953,6 +892,7 @@
                         const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
                         const offsetPosition = elementPosition - headerOffset;
                         window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                        dropdown.classList.remove('active');
                     }
                 });
             });
