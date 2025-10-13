@@ -20,6 +20,13 @@ const users = {
 
 let loggedInUser = null;
 
+app.use(express.static('public')); // Serve static files from public folder (e.g., index.html)
+
+// Serve index.html for root path
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   const lowerUsername = username.toLowerCase();
