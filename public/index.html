@@ -719,7 +719,7 @@
             <section id="board-members-posts">
                 <h2>Board Members' Contributions</h2>
                 <div class="timestamp" id="currentTime">Loading time...</div>
-                <div class="comment-section" id="commentSection" style="display: none;">
+                <div class="comment-section" id="commentSection">
                     <h3>Add a Comment</h3>
                     <div class="form-group">
                         <label for="commentInput">Your Comment:</label>
@@ -839,6 +839,7 @@
                     document.getElementById('loggedInUser').textContent = data.user;
                     document.getElementById('loginArea').style.display = 'none';
                     document.getElementById('loggedInArea').style.display = 'flex';
+                    loadComments();
                     closeLogin();
                 } else {
                     alert(data.message);
@@ -857,6 +858,7 @@
                 if (response.ok) {
                     document.getElementById('loggedInArea').style.display = 'none';
                     document.getElementById('loginArea').style.display = 'flex';
+                    document.getElementById('commentList').innerHTML = '';
                     alert(data.message);
                 }
             } catch (error) {
@@ -864,6 +866,51 @@
                 console.error('Logout error:', error);
             }
         });
+
+        async function loadComments() {
+            try {
+                const response = await fetch('http://localhost:3000/comments');
+                const comments = await response.json();
+                const commentList = document.getElementById('commentList');
+                commentList.innerHTML = comments.map(comment => `
+                    <div class="comment">
+                        <span class="author">${comment.author}</span>: ${comment.text}
+                        <div class="timestamp">${new Date(comment.timestamp).toLocaleString('en-IE', { timeZone: 'Europe/Dublin' })} IST</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }
+
+        async function addComment() {
+            const commentInput = document.getElementById('commentInput');
+            const text = commentInput.value.trim();
+
+            if (!text) {
+                alert('Comment cannot be empty. 💦');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    commentInput.value = '';
+                    loadComments();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                alert('Error posting comment. 💦');
+                console.error('Comment error:', error);
+            }
+        }
 
         function closeLogin() {
             document.getElementById('loginPage').classList.remove('active');
@@ -873,10 +920,6 @@
 
         function showRegistration() {
             alert('Registration not implemented without a backend. Fuck you! 💦');
-        }
-
-        function addComment() {
-            alert('Comment feature requires a backend server. Contact admin to set up.');
         }
 
         function changePassword() {
@@ -963,6 +1006,15 @@
                     }
                 }
             });
+
+            // Load comments when comment section becomes visible
+            const commentSection = document.getElementById('commentSection');
+            const commentObserver = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    loadComments();
+                }
+            }, { threshold: 0.1 });
+            commentObserver.observe(commentSection);
         });
 
         function toggleFAQ() {

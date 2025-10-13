@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
@@ -19,10 +20,10 @@ const users = {
 };
 
 let loggedInUser = null;
+let comments = [];
 
-app.use(express.static('public')); // Serve static files from public folder (e.g., index.html)
+app.use(express.static('public'));
 
-// Serve index.html for root path
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -50,6 +51,28 @@ app.get('/logout', (req, res) => {
 
 app.get('/status', (req, res) => {
   res.json({ loggedIn: loggedInUser !== null, user: loggedInUser });
+});
+
+app.get('/comments', (req, res) => {
+  res.json(comments);
+});
+
+app.post('/comments', (req, res) => {
+  if (!loggedInUser) {
+    return res.status(403).json({ message: 'You must be logged in to post a comment. 💦' });
+  }
+  const { text } = req.body;
+  if (!text || text.trim() === '') {
+    return res.status(400).json({ message: 'Comment cannot be empty. 💦' });
+  }
+  const newComment = {
+    id: Date.now(),
+    author: loggedInUser,
+    text,
+    timestamp: new Date().toISOString()
+  };
+  comments.push(newComment);
+  res.status(201).json(newComment);
 });
 
 const PORT = process.env.PORT || 3000;
