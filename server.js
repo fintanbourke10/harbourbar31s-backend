@@ -5,7 +5,8 @@ const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
-app.use(cors());
+// Allow requests from the frontend (adjust origin to match your deployed frontend URL)
+app.use(cors({ origin: 'https://harbourbar31s-backend.onrender.com' }));
 
 const users = {
   fintan: 'fintanpass',
