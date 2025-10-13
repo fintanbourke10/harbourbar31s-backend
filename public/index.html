@@ -727,6 +727,7 @@
                     </div>
                     <button onclick="addComment()">Post Comment</button>
                     <div class="comment-list" id="commentList"></div>
+                    <button onclick="loadCommentsManually()">Refresh Comments</button> <!-- Manual trigger -->
                 </div>
             </section>
             <hr class="section-divider">
@@ -839,7 +840,7 @@
                     document.getElementById('loggedInUser').textContent = data.user;
                     document.getElementById('loginArea').style.display = 'none';
                     document.getElementById('loggedInArea').style.display = 'flex';
-                    loadComments();
+                    loadComments(); // Load comments immediately after login
                     closeLogin();
                 } else {
                     alert(data.message);
@@ -884,6 +885,7 @@
                 `).join('');
             } catch (error) {
                 console.error('Error loading comments:', error);
+                alert('Failed to load comments. Check console for details. 💦');
             }
         }
 
@@ -914,6 +916,11 @@
                 alert('Error posting comment. 💦');
                 console.error('Comment error:', error);
             }
+        }
+
+        function loadCommentsManually() { // New manual trigger
+            loadComments();
+            alert('Comments refreshed manually. 💦');
         }
 
         function closeLogin() {
@@ -1011,7 +1018,7 @@
                 }
             });
 
-            // Load comments when comment section becomes visible
+            // Keep IntersectionObserver for comment section
             const commentSection = document.getElementById('commentSection');
             const commentObserver = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting) {
