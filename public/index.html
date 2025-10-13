@@ -44,7 +44,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>31's Harbour Rule Book</title>
+    <title>31's Rule Book</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Cinzel:wght@600&display=swap');
 
@@ -100,7 +100,7 @@
         .dropdown {
             position: relative;
             display: inline-block;
-            margin-right: 10px;
+            margin-left: 10px;
         }
         .dropdown-button {
             display: flex;
@@ -115,7 +115,6 @@
             border: none;
             padding: 0;
             font-size: 1.5em;
-            color: #fff;
         }
         .dropdown-button:active {
             transform: scale(0.95);
@@ -126,6 +125,7 @@
         .hamburger-icon {
             font-size: 2em;
             line-height: 1;
+            color: #d4af37;
         }
         .dropdown-content {
             display: none;
@@ -187,6 +187,7 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            text-align: center;
         }
         .login-btn, .change-password-btn {
             padding: 10px 20px;
@@ -202,6 +203,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-right: 10px;
         }
         .login-btn:hover, .change-password-btn:hover {
             background: #1b5e20;
@@ -212,14 +214,8 @@
             height: 24px;
         }
         .login-btn {
-            position: absolute;
-            bottom: 5px;
-            right: 10px;
         }
         .change-password-btn {
-            position: absolute;
-            bottom: 5px;
-            right: 120px;
             display: none;
         }
         .content {
@@ -353,17 +349,17 @@
         }
         .footer {
             text-align: center;
-            padding: 10px;
+            padding: 2px;
             background: linear-gradient(180deg, #3c2f2f 0%, #2e1a1a 100%);
-            border-top: 2px double #d4af37;
-            font-size: 0.9em;
+            border-top: 1px solid #d4af37;
+            font-size: 0.7em;
             color: #fdf6e3;
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            min-height: 50px;
+            min-height: 20px;
         }
         .login-page, .change-password-page {
             display: none;
@@ -516,8 +512,8 @@
                 font-size: 1.1em;
             }
             .footer {
-                min-height: 60px;
-                font-size: 1em;
+                min-height: 20px;
+                font-size: 0.7em;
             }
             .login-page, .change-password-page {
                 max-width: 400px;
@@ -550,7 +546,7 @@
                         <a href="#faq">Frequently Asked Questions</a>
                     </div>
                 </div>
-                <h1>31's Harbour Rule Book</h1>
+                <h1>31's Rule Book</h1>
                 <div>
                     <button class="login-btn" id="loginLink">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -562,7 +558,7 @@
             </div>
         </div>
         <div class="content">
-            <h1>31's Harbour Rule Book</h1>
+            <h1>31's Rule Book</h1>
             <section id="intro" class="visible">
                 <h2>Introduction</h2>
                 <p>Craic, welcome to <strong>31's</strong>—a rip-roarin' card game with a 32-card deck where you’ve gotta think fast or get knackered, you lazy lot from the southside of Dublin, Brent! Aim to rack up a hand close to 31 points, and if you snag three of a kind, you’ve got a cheeky "30 and a half" to brag about—good luck, Fintan, you self-proclaimed napping king! Whether you’re a seasoned pro or a clueless newbie like Brent stumbling into this chaos with his southside swagger, this guide’s here to show you how to rule the table—if you can stop drooling long enough, Aaron, you pint-stealing peacock! It’s a wild ride with quick moves, a bit of rivalry, and a lot of piss-taking—perfect for a laugh with mates or a proper sesh with some stakes, you stoned slugs!</p>
@@ -758,7 +754,7 @@
             </section>
         </div>
         <div class="footer">
-            <p>© 2025 31's Card Game. All rights reserved. Proudly crafted by Grok, with a wee bit o' craic and only a few pints spilled—cheers to the 31's Harbour Committee for keeping it legit!</p>
+            <p>© 2025 31's</p>
         </div>
         <div class="login-page" id="loginPage">
             <h2>Login</h2>
@@ -818,11 +814,24 @@
         }
 
         function login() {
-            alert('Login feature requires a backend server. Contact admin to set up.');
+            const username = document.getElementById('username').value.toLowerCase();
+            const password = document.getElementById('password').value;
+            const boardMembers = ['fintan', 'macken', 'richard', 'johnny', 'peter baby', 'jody', 'brent', 'aaron', 'paddy'];
+
+            if (!boardMembers.includes(username)) {
+                alert(`Access denied, ${username}! Only board members can log in. 💦`);
+                return;
+            }
+            // Dummy password check (replace with real backend logic)
+            if (password === `${username}pass`) { // Placeholder password for each board member
+                alert('Login successful! (Backend required for full functionality)');
+            } else {
+                alert('Incorrect password. 💦');
+            }
         }
 
         function showRegistration() {
-            alert('Registration not implemented without a backend. Contact admin.');
+            alert('Registration not implemented without a backend. Fuck you! 💦');
         }
 
         function addComment() {
