@@ -42,7 +42,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes"> <!-- Updated from deprecated apple-mobile-web-app-capable -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>31's Rule Book</title>
     <style>
@@ -727,7 +727,7 @@
                     </div>
                     <button onclick="addComment()">Post Comment</button>
                     <div class="comment-list" id="commentList"></div>
-                    <button onclick="loadCommentsManually()">Refresh Comments</button> <!-- Manual trigger -->
+                    <button onclick="loadCommentsManually()">Refresh Comments</button>
                 </div>
             </section>
             <hr class="section-divider">
@@ -871,11 +871,13 @@
         });
 
         async function loadComments() {
+            console.log('Loading comments...');
             try {
                 const response = await fetch('https://harbourbar31s-backend.onrender.com/comments', {
                     method: 'GET'
                 });
                 const comments = await response.json();
+                console.log('Comments received:', comments);
                 const commentList = document.getElementById('commentList');
                 commentList.innerHTML = comments.map(comment => `
                     <div class="comment">
@@ -890,6 +892,7 @@
         }
 
         async function addComment() {
+            console.log('Posting comment...');
             const commentInput = document.getElementById('commentInput');
             const text = commentInput.value.trim();
 
@@ -905,7 +908,7 @@
                     body: JSON.stringify({ text })
                 });
                 const data = await response.json();
-
+                console.log('Comment response:', data);
                 if (response.ok) {
                     commentInput.value = '';
                     loadComments();
@@ -918,7 +921,7 @@
             }
         }
 
-        function loadCommentsManually() { // New manual trigger
+        function loadCommentsManually() {
             loadComments();
             alert('Comments refreshed manually. 💦');
         }
@@ -1018,7 +1021,6 @@
                 }
             });
 
-            // Keep IntersectionObserver for comment section
             const commentSection = document.getElementById('commentSection');
             const commentObserver = new IntersectionObserver((entries) => {
                 if (entries[0].isIntersecting) {
