@@ -42,7 +42,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes"> <!-- Updated from deprecated apple-mobile-web-app-capable -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>31's Rule Book</title>
     <style>
@@ -445,7 +445,7 @@
             background: #333;
         }
         .comment-section {
-            display: none;
+            display: block !important; /* Force visibility */
             padding: 15px;
             background: #fff;
             border-radius: 8px;
@@ -453,9 +453,6 @@
             max-width: 90%;
             margin: 20px auto;
             font-size: 1em;
-        }
-        .comment-section.active {
-            display: block;
         }
         .comment-list {
             margin-top: 15px;
@@ -840,7 +837,8 @@
                     document.getElementById('loggedInUser').textContent = data.user;
                     document.getElementById('loginArea').style.display = 'none';
                     document.getElementById('loggedInArea').style.display = 'flex';
-                    loadComments(); // Load comments immediately after login
+                    loadComments(); // Load comments
+                    showCommentSection(); // Force section visibility
                     closeLogin();
                 } else {
                     alert(data.message);
@@ -924,6 +922,25 @@
         function loadCommentsManually() {
             loadComments();
             alert('Comments refreshed manually. 💦');
+        }
+
+        function showCommentSection() {
+            const commentSection = document.getElementById('commentSection');
+            const boardSection = document.getElementById('board-members-posts');
+            console.log('Board section found:', !!boardSection);
+            console.log('Comment section found:', !!commentSection);
+            if (commentSection) {
+                commentSection.style.display = 'block'; // Force display
+                console.log('Comment section forced visible');
+            } else {
+                console.log('Comment section not found in DOM');
+            }
+            if (boardSection) {
+                boardSection.style.display = 'block'; // Ensure parent is visible
+                console.log('Board section forced visible');
+            } else {
+                console.log('Board section not found in DOM');
+            }
         }
 
         function closeLogin() {
@@ -1022,12 +1039,16 @@
             });
 
             const commentSection = document.getElementById('commentSection');
-            const commentObserver = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting) {
-                    loadComments();
-                }
-            }, { threshold: 0.1 });
-            commentObserver.observe(commentSection);
+            if (commentSection) {
+                const commentObserver = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        loadComments();
+                    }
+                }, { threshold: 0.1 });
+                commentObserver.observe(commentSection);
+            } else {
+                console.log('Comment section not found for observer');
+            }
         });
 
         function toggleFAQ() {
