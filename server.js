@@ -4,79 +4,76 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
+const port = process.env.PORT || 10000;
+
 app.use(bodyParser.json());
-// Allow requests from the frontend (adjust origin to match your deployed frontend URL)
-app.use(cors({ origin: 'https://harbourbar31s-backend.onrender.com' }));
-
-const users = {
-  fintan: 'fintanpass',
-  macken: 'mackenpass',
-  richard: 'richardpass',
-  johnny: 'johnnypass',
-  'peter baby': 'peterpass',
-  jody: 'jodypass',
-  brent: 'brentpass',
-  aaron: 'aaronpass',
-  paddy: 'paddypass'
-};
-
-let loggedInUser = null;
-let comments = [];
-
+app.use(cors({
+    origin: 'https://harbourbar31s-backend.onrender.com',
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 app.use(express.static('public'));
 
+// In-memory storage (replace with database in production)
+let users = {
+    fintan: { password: 'fintanpass' },
+    macken: { password: 'mackenpass' },
+    richard: { password: 'richardpass' },
+    johnny: { password: 'johnnypass' },
+    peterbaby: { password: 'peterpass' },
+    jody: { password: 'jodypass' }
+};
+let currentUser = null;
+let comments = [];
+
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const lowerUsername = username.toLowerCase();
-
-  if (!users.hasOwnProperty(lowerUsername)) {
-    return res.status(403).json({ message: `Access denied, ${username}! Only board members can log in. 💦` });
-  }
-
-  if (users[lowerUsername] === password) {
-    loggedInUser = lowerUsername;
-    res.json({ message: 'Login successful!', user: lowerUsername });
-  } else {
-    res.status(401).json({ message: 'Incorrect password. 💦' });
-  }
+    const { username, password } = req.body;
+    if (users[username] && users[username].password === password) {
+        currentUser = username;
+        res.json({ success: true, message: 'Logged in successfully', user: username });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid username or password' });
+    }
 });
 
 app.get('/logout', (req, res) => {
-  loggedInUser = null;
-  res.json({ message: 'Logged out successfully' });
+    currentUser = null;
+    res.json({ success: true, message: 'Logged out successfully' });
 });
 
 app.get('/status', (req, res) => {
-  res.json({ loggedIn: loggedInUser !== null, user: loggedInUser });
+    res.json({ loggedIn: !!currentUser, user: currentUser });
 });
 
 app.get('/comments', (req, res) => {
-  res.json(comments);
+    if (!currentUser) {
+        return res.status(403).json({ success: false, message: 'You must be logged in' });
+    }
+    res.json(comments);
 });
 
 app.post('/comments', (req, res) => {
-  if (!loggedInUser) {
-    return res.status(403).json({ message: 'You must be logged in to post a comment. 💦' });
-  }
-  const { text } = req.body;
-  if (!text || text.trim() === '') {
-    return res.status(400).json({ message: 'Comment cannot be empty. 💦' });
-  }
-  const newComment = {
-    id: Date.now(),
-    author: loggedInUser,
-    text,
-    timestamp: new Date().toISOString()
-  };
-  comments.push(newComment);
-  res.status(201).json(newComment);
+    if (!currentUser) {
+        return res.status(403).json({ success: false, message: 'You must be logged in' });
+    }
+    const { text } = req.body;
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ success: false, message: 'Comment cannot be empty' });
+    }
+    const newComment = {
+        id: Date.now(),
+        author: currentUser,
+        text: text.trim(),
+        timestamp: new Date().toISOString()
+    };
+    comments.push(newComment);
+    res.json({ success: true, message: 'Comment added', comment: newComment });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
 });
