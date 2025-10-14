@@ -189,7 +189,7 @@
             text-overflow: ellipsis;
             text-align: center;
         }
-        .login-btn, .change-password-btn, .logout-btn {
+        .auth-btn {
             padding: 10px 20px;
             background: #2e7d32;
             color: #fff;
@@ -205,20 +205,15 @@
             justify-content: center;
             margin-right: 10px;
         }
-        .login-btn:hover, .change-password-btn:hover, .logout-btn:hover {
+        .auth-btn:hover {
             background: #1b5e20;
         }
-        .login-btn svg {
+        .auth-btn svg {
             fill: #d4af37;
             width: 24px;
             height: 24px;
         }
-        .login-btn {
-        }
         .change-password-btn {
-            display: none;
-        }
-        .logout-btn {
             display: none;
         }
         .logged-in {
@@ -499,7 +494,7 @@
                 max-width: 70%;
                 letter-spacing: 2px;
             }
-            .login-btn, .change-password-btn, .logout-btn {
+            .auth-btn {
                 min-width: 120px;
             }
             .content {
@@ -556,17 +551,14 @@
                     </div>
                 </div>
                 <h1>31's Rule Book</h1>
-                <div id="loginArea">
-                    <button class="login-btn" id="loginLink">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <div id="authArea">
+                    <button class="auth-btn" id="authBtn">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="authIcon">
                             <path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5zm0 12c-1.38 0-2.5-1.12-2.5-2.5S10.62 9 12 9s2.5 1.12 2.5 2.5S13.38 14 12 14zm5-7V7c0-1.65-1.35-3-3-3s-3 1.35-3 3v3h6V7z"/>
                         </svg>
+                        <span id="authText">Login</span>
                     </button>
                     <button class="change-password-btn" id="changePasswordLink">Change Password</button>
-                    <div class="logged-in" id="loggedInArea" style="display: none;">
-                        <span class="username" id="loggedInUser"></span>
-                        <button class="logout-btn" id="logoutBtn">Logout</button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -817,9 +809,32 @@
         updateTime();
         setInterval(updateTime, 60000);
 
-        document.getElementById('loginLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('loginPage').classList.add('active');
+        document.getElementById('authBtn').addEventListener('click', async () => {
+            const authBtn = document.getElementById('authBtn');
+            const authText = document.getElementById('authText');
+            const authIcon = document.getElementById('authIcon');
+
+            if (authText.textContent === 'Login') {
+                document.getElementById('loginPage').classList.add('active');
+            } else {
+                try {
+                    const response = await fetch('https://harbourbar31s-backend.onrender.com/logout', {
+                        method: 'GET'
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById('authArea').style.display = 'flex';
+                        authText.textContent = 'Login';
+                        authIcon.innerHTML = '<path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5zm0 12c-1.38 0-2.5-1.12-2.5-2.5S10.62 9 12 9s2.5 1.12 2.5 2.5S13.38 14 12 14zm5-7V7c0-1.65-1.35-3-3-3s-3 1.35-3 3v3h6V7z"/>';
+                        document.getElementById('commentList').innerHTML = '';
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    alert('Error logging out. 💦');
+                    console.error('Logout error:', error);
+                }
+            }
         });
 
         async function login() {
@@ -835,12 +850,16 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    document.getElementById('loggedInUser').textContent = data.user;
-                    document.getElementById('loginArea').style.display = 'none';
-                    document.getElementById('loggedInArea').style.display = 'flex';
+                    const authBtn = document.getElementById('authBtn');
+                    const authText = document.getElementById('authText');
+                    const authIcon = document.getElementById('authIcon');
+                    authText.textContent = 'Logout';
+                    authIcon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>';
+                    document.getElementById('loginPage').classList.remove('active');
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
                     loadComments();
                     showCommentSection();
-                    closeLogin();
                 } else {
                     alert(data.message);
                 }
@@ -850,31 +869,16 @@
             }
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('https://harbourbar31s-backend.onrender.com/logout', {
-                    method: 'GET'
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('loggedInArea').style.display = 'none';
-                    document.getElementById('loginArea').style.display = 'flex';
-                    document.getElementById('commentList').innerHTML = '';
-                    alert(data.message);
-                }
-            } catch (error) {
-                alert('Error logging out. 💦');
-                console.error('Logout error:', error);
-            }
-        });
-
         async function loadComments() {
             console.log('Loading comments...');
             try {
                 const response = await fetch('https://harbourbar31s-backend.onrender.com/comments', {
-                    method: 'GET'
+                    method: 'GET',
+                    credentials: 'include'
                 });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const comments = await response.json();
                 console.log('Comments received:', comments);
                 const commentList = document.getElementById('commentList');
@@ -885,8 +889,8 @@
                     </div>
                 `).join('');
             } catch (error) {
-                console.error('Error loading comments:', error);
-                alert('Failed to load comments. Check console for details. 💦');
+                console.error('Error loading comments:', error.message, error.stack);
+                alert(`Failed to load comments. Check console for details. Status: ${error.message}. 💦`);
             }
         }
 
