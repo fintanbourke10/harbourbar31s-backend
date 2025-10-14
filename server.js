@@ -9,7 +9,7 @@ const port = process.env.PORT || 10000;
 app.use(bodyParser.json());
 app.use(cors({
     origin: 'https://harbourbar31s-backend.onrender.com',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'DELETE'],
     credentials: true
 }));
 app.use(express.static('public'));
@@ -72,6 +72,14 @@ app.post('/comments', (req, res) => {
     };
     comments.push(newComment);
     res.json({ success: true, message: 'Comment added', comment: newComment });
+});
+
+app.delete('/comments', (req, res) => {
+    if (!currentUser) {
+        return res.status(403).json({ success: false, message: 'You must be logged in' });
+    }
+    comments = []; // Clear all comments
+    res.json({ success: true, message: 'All comments deleted' });
 });
 
 app.listen(port, () => {
