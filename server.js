@@ -6,12 +6,17 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 10000;
 
-app.use(bodyParser.json());
+app.use((req, res, next) => {
+    console.log('Request origin:', req.get('origin'));
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    next();
+});
 app.use(cors({
     origin: 'https://harbourbar31s-backend.onrender.com',
     methods: ['GET', 'POST', 'DELETE'],
     credentials: true
 }));
+app.use(bodyParser.json());
 app.use(express.static('public'));
 
 // In-memory storage (replace with database in production)
@@ -32,6 +37,7 @@ app.get('/', (req, res) => {
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
+    console.log('Login attempt:', username);
     if (users[username] && users[username].password === password) {
         currentUser = username;
         res.json({ success: true, message: 'Logged in successfully', user: username });
@@ -41,6 +47,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
+    console.log('Logout attempt by:', currentUser);
     currentUser = null;
     res.json({ success: true, message: 'Logged out successfully' });
 });
@@ -50,6 +57,7 @@ app.get('/status', (req, res) => {
 });
 
 app.get('/comments', (req, res) => {
+    console.log('GET /comments - currentUser:', currentUser);
     if (!currentUser) {
         return res.status(403).json({ success: false, message: 'You must be logged in' });
     }
@@ -57,6 +65,7 @@ app.get('/comments', (req, res) => {
 });
 
 app.post('/comments', (req, res) => {
+    console.log('POST /comments by:', currentUser);
     if (!currentUser) {
         return res.status(403).json({ success: false, message: 'You must be logged in' });
     }
@@ -75,6 +84,7 @@ app.post('/comments', (req, res) => {
 });
 
 app.delete('/comments', (req, res) => {
+    console.log('DELETE /comments by:', currentUser);
     if (!currentUser) {
         return res.status(403).json({ success: false, message: 'You must be logged in' });
     }

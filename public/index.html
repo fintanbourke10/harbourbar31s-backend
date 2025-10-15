@@ -1065,16 +1065,10 @@
                 }
             });
 
+            // Disable IntersectionObserver for loadComments until login
             const commentSection = document.getElementById('commentSection');
             if (commentSection) {
-                const commentObserver = new IntersectionObserver((entries) => {
-                    if (entries[0].isIntersecting) {
-                        loadComments();
-                    }
-                }, { threshold: 0.1 });
-                commentObserver.observe(commentSection);
-            } else {
-                console.log('Comment section not found for observer');
+                console.log('Comment section found, observer disabled until login');
             }
         });
 
