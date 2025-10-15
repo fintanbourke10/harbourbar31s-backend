@@ -87,7 +87,7 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            min-height: 60px;
+            min-height: 50px; /* Reduced height for mobile */
         }
         .header-content {
             display: flex;
@@ -100,21 +100,21 @@
         .dropdown {
             position: relative;
             display: inline-block;
-            margin-left: 10px;
+            margin-left: 5px; /* Reduced margin for mobile */
         }
         .dropdown-button {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 60px;
-            height: 60px;
+            width: 40px; /* Reduced width for mobile */
+            height: 40px; /* Reduced height for mobile */
             cursor: pointer;
             transition: transform 0.3s ease;
             touch-action: manipulation;
             background: none;
             border: none;
             padding: 0;
-            font-size: 1.5em;
+            font-size: 1.2em; /* Reduced font size for mobile */
         }
         .dropdown-button:active {
             transform: scale(0.95);
@@ -123,7 +123,7 @@
             transform: scale(1.05);
         }
         .hamburger-icon {
-            font-size: 2em;
+            font-size: 1.5em; /* Reduced for mobile */
             line-height: 1;
             color: #d4af37;
         }
@@ -132,7 +132,7 @@
             position: fixed;
             background: rgba(60,47,47,0.95);
             width: 250px;
-            top: 60px;
+            top: 50px; /* Adjusted for reduced header height */
             left: -250px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             border-radius: 0;
@@ -175,7 +175,7 @@
         }
         .header-row h1 {
             font-family: 'Cinzel', serif;
-            font-size: 1.3em;
+            font-size: 1.1em; /* Reduced font size for mobile */
             font-weight: 700;
             color: #fff;
             margin: 0;
@@ -190,28 +190,28 @@
             text-align: center;
         }
         .auth-btn {
-            padding: 10px 20px;
+            padding: 8px 16px; /* Reduced padding for mobile */
             background: #2e7d32;
             color: #fff;
             border: 2px solid #d4af37;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 1.2em;
+            font-size: 1.0em; /* Reduced font size for mobile */
             transition: background 0.3s ease;
-            min-width: 100px;
-            min-height: 48px;
+            min-width: 80px; /* Reduced min-width for mobile */
+            min-height: 40px; /* Reduced min-height for mobile */
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 10px;
+            margin-right: 5px; /* Reduced margin for mobile */
         }
         .auth-btn:hover {
             background: #1b5e20;
         }
         .auth-btn svg {
             fill: #d4af37;
-            width: 24px;
-            height: 24px;
+            width: 20px; /* Reduced size for mobile */
+            height: 20px; /* Reduced size for mobile */
         }
         .change-password-btn {
             display: none;
@@ -226,7 +226,7 @@
             font-size: 1.1em;
         }
         .content {
-            padding: 70px 10px 120px;
+            padding: 50px 10px 120px; /* Adjusted top padding for reduced header height */
             background: #fdf6e3;
             position: relative;
             overflow-y: auto;
@@ -485,9 +485,6 @@
                 width: 70px;
                 height: 70px;
                 font-size: 2em;
-            }
-            .dropdown-content {
-                top: 70px;
             }
             .header-row h1 {
                 font-size: 1.8em;
@@ -824,7 +821,6 @@
                     const data = await response.json();
 
                     if (response.ok) {
-                        document.getElementById('authArea').style.display = 'flex';
                         authText.textContent = 'Login';
                         authIcon.innerHTML = '<path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5zm0 12c-1.38 0-2.5-1.12-2.5-2.5S10.62 9 12 9s2.5 1.12 2.5 2.5S13.38 14 12 14zm5-7V7c0-1.65-1.35-3-3-3s-3 1.35-3 3v3h6V7z"/>';
                         document.getElementById('commentList').innerHTML = '';
